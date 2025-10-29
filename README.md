@@ -43,7 +43,7 @@ The application follows a three-tier architecture pattern:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Load Balancer / Service                   │
+│                    Load Balancer / Service                  │
 │              (NodePort on Minikube / ELB on EKS)            │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -57,13 +57,13 @@ The application follows a three-tier architecture pattern:
         └─────────────────────┼─────────────────────┘
                               │
                     ┌─────────▼──────────┐
-                    │   MongoDB Service   │
-                    │    (ClusterIP)      │
+                    │   MongoDB Service  │
+                    │    (ClusterIP)     │
                     └─────────┬──────────┘
                               │
                     ┌─────────▼──────────┐
-                    │   MongoDB Pod       │
-                    │  + Persistent Vol   │
+                    │   MongoDB Pod      │
+                    │  + Persistent Vol  │
                     └────────────────────┘
 ```
 
@@ -71,8 +71,8 @@ The application follows a three-tier architecture pattern:
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                  Prometheus Server                        │
-│              (Metrics Collection & Storage)               │
+│                  Prometheus Server                       │
+│              (Metrics Collection & Storage)              │
 └──────────────────┬───────────────────────────────────────┘
                    │
       ┌────────────┼────────────┐
@@ -332,7 +332,7 @@ eksctl create cluster \
 
 **Figure 3: EKS Cluster Overview**
 ![EKS Cluster](screenshots/Screenshot%202025-10-29%20at%2013.51.13.png)
-*AWS Console showing EKS cluster details including cluster name, Kubernetes version, VPC configuration, and endpoint information.*
+*AWS Console showing EKS cluster details, including cluster name, Kubernetes version, VPC configuration, and endpoint information.*
 
 **Figure 4: EKS Node Configuration**
 ![EKS Nodes](screenshots/Screenshot%202025-10-29%20at%2013.52.03.png)
