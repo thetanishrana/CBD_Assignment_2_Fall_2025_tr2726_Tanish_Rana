@@ -1,0 +1,100 @@
+# Prometheus Helm Chart Values
+# This configures Prometheus with Alertmanager for Slack notifications
+
+# AlertManager Configuration
+alertmanager:
+  enabled: true
+
+  persistentVolume:
+    enabled: false
+
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/YOUR_WORKSPACE/YOUR_CHANNEL/YOUR_TOKEN'
+
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: 'slack-notifications'
+
+    receivers:
+    - name: 'slack-notifications'
+      slack_configs:
+      - channel: '#all-cloud-big-data-assignment-2'
+        title: 'Kubernetes Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+# Prometheus Server Configuration
+server:
+  enabled: true
+
+  # Alerting rules for pod failures
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093
+
+  # Define alert rules
+  serverFiles:
+    alerting_rules.yml:
+      groups:
+      - name: kubernetes_alerts
+        interval: 10s
+        rules:
+        # Alert when pod is down
+        - alert: PodDown
+          expr: up{job="kubernetes-pods"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.pod }} is down"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been down for more than 1 minute."
+
+        # Alert when pod is not ready
+        - alert: PodNotReady
+          expr: kube_pod_status_phase{phase!="Running"} > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.pod }} is not ready"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not in Running state."
+
+        # Alert for high memory usage
+        - alert: HighMemoryUsage
+          expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.8
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory usage in {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} is using more than 80% of its memory limit."
+
+        # Alert for high CPU usage
+        - alert: HighCPUUsage
+          expr: (rate(container_cpu_usage_seconds_total[5m]) / container_spec_cpu_quota) > 0.8
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High CPU usage in {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} is using more than 80% of its CPU limit."
+
+  # Storage configuration
+  persistentVolume:
+    enabled: true
+    size: 8Gi
+    storageClass: gp2
+
+# Enable Prometheus Node Exporter
+nodeExporter:
+  enabled: true
+
+# Enable Kube State Metrics
+kubeStateMetrics:
+  enabled: true

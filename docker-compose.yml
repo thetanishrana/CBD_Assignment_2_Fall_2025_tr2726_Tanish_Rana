@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # MongoDB Database Service
+  mongodb:
+    image: mongo:5.0
+    container_name: todo-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      # Persistent volume for MongoDB data
+      - mongodb_data:/data/db
+    networks:
+      - todo-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Application Service
+  flask-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todo-flask-app
+    ports:
+      - "5001:5000"
+    environment:
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - FLASK_ENV=development
+    depends_on:
+      - mongodb
+    networks:
+      - todo-network
+    restart: unless-stopped
+
+# Named volumes for data persistence
+volumes:
+  mongodb_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  todo-network:
+    driver: bridge
